@@ -1,0 +1,44 @@
+{
+  "comment":" This config file uses default settings for all but the required values see README.md for docs",
+  "id": "default",
+  "description": "Default settings",
+  "engineFactory": "org.template.RecommendationEngine",
+  "datasource": {
+    "params" : {
+      "name": "some-data",
+      "appName": "reco1",
+      "eventNames": ["buy", "view"]
+    }
+  },
+  "sparkConf": {
+    "spark.serializer": "org.apache.spark.serializer.KryoSerializer",
+    "spark.kryo.registrator": "org.apache.mahout.sparkbindings.io.MahoutKryoRegistrator",
+    "spark.kryo.referenceTracking": "false",
+    "spark.kryoserializer.buffer": "300m",
+    "es.index.auto.create": "true"
+  },
+  "algorithms": [
+    {
+      "comment": "simplest setup where all values are default, popularity based backfill, must add eventsNames",
+      "name": "ur",
+      "params": {
+        "appName": "reco1",
+        "indexName": "urindex",
+        "typeName": "items",
+        "eventNames": [
+          "buy",
+          "view"
+        ],
+        "indicators": [
+          {
+            "name": "buy"
+          },{
+            "name": "view",
+            "maxCorrelatorsPerItem": 50
+          }
+        ],
+        "num": 5
+      }
+    }
+  ]
+}
