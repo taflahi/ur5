@@ -442,6 +442,18 @@ class URAlgorithm(val ap: URAlgorithmParams)
 
     queryEventNames = query.eventNames.getOrElse(modelEventNames) // eventNames in query take precedence
 
+    if (query.item.nonEmpty && query.businessId.nonEmpty) {
+      query.item = Option(query.businessId.get.concat("_").concat(query.item.get))
+      logger.info(s"query now ${query.item.get}")
+
+      val busId = Field("businessId", Seq(query.businessId.get), -1)
+      if (query.fields.nonEmpty) {
+        query.fields = Option(query.fields.get :+ busId)
+      } else {
+        query.fields = Option(List(busId))
+      }
+    }
+
     val (queryStr, blacklist) = buildQuery(ap, query, rankingFieldNames)
     val searchHitsOpt = EsClient.search(queryStr, esIndex)
 
