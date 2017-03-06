@@ -442,9 +442,9 @@ class URAlgorithm(val ap: URAlgorithmParams)
 
     queryEventNames = query.eventNames.getOrElse(modelEventNames) // eventNames in query take precedence
 
-    if (query.item.nonEmpty && query.businessId.nonEmpty) {
+    if (query.user.nonEmpty && query.item.nonEmpty && query.businessId.nonEmpty) {
+      query.user = Option(query.businessId.get.concat("_").concat(query.user.get))
       query.item = Option(query.businessId.get.concat("_").concat(query.item.get))
-      logger.info(s"query now ${query.item.get}")
 
       val busId = Field("businessId", Seq(query.businessId.get), -1)
       if (query.fields.nonEmpty) {

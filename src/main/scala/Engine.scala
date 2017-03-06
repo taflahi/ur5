@@ -30,7 +30,7 @@ import org.template.conversions._
  *  an item id. All other values are optional.
  */
 case class Query(
-  user: Option[String] = None, // must be a user or item id
+  var user: Option[String] = None, // must be a user or item id
   userBias: Option[Float] = None, // default: whatever is in algorithm params or 1
   var item: Option[String] = None, // must be a user or item id
   itemBias: Option[Float] = None, // default: whatever is in algorithm params or 1
