@@ -442,15 +442,32 @@ class URAlgorithm(val ap: URAlgorithmParams)
 
     queryEventNames = query.eventNames.getOrElse(modelEventNames) // eventNames in query take precedence
 
-    if (query.user.nonEmpty && query.item.nonEmpty && query.businessId.nonEmpty) {
-      query.user = Option(query.businessId.get.concat("_").concat(query.user.get))
-      query.item = Option(query.businessId.get.concat("_").concat(query.item.get))
+    if (query.user.nonEmpty && query.item.nonEmpty) {
 
-      val busId = Field("businessId", Seq(query.businessId.get), -1)
-      if (query.fields.nonEmpty) {
-        query.fields = Option(query.fields.get :+ busId)
-      } else {
-        query.fields = Option(List(busId))
+      if (query.user.get.split(";").length == 2
+        && query.item.get.split(";").length == 2) {
+        val userBid = query.user.get.split(";")(0)
+        val itemBid = query.item.get.split(";")(0)
+
+        if (userBid != itemBid) {
+          val predictedResult = PredictedResult(Array.empty[ItemScore])
+          logger.info(s"businessIds are different ${userBid} , ${itemBid}")
+          return predictedResult
+        }
+
+        logger.info(s"businessIds are same")
+
+        val busId = Field("businessId", Seq(userBid), -1)
+        if (query.fields.nonEmpty) {
+          query.fields = Option(query.fields.get :+ busId)
+        } else {
+          query.fields = Option(List(busId))
+        }
+      } else if (query.user.get.split(";").length == 2
+        || query.item.get.split(";").length == 2) {
+        val predictedResult = PredictedResult(Array.empty[ItemScore])
+        logger.info(s"no business id on user or item")
+        return predictedResult
       }
     }
 

@@ -30,11 +30,10 @@ import org.template.conversions._
  *  an item id. All other values are optional.
  */
 case class Query(
-  var user: Option[String] = None, // must be a user or item id
+  user: Option[String] = None, // must be a user or item id
   userBias: Option[Float] = None, // default: whatever is in algorithm params or 1
-  var item: Option[String] = None, // must be a user or item id
+  item: Option[String] = None, // must be a user or item id
   itemBias: Option[Float] = None, // default: whatever is in algorithm params or 1
-  businessId: Option[String] = None,
   var fields: Option[List[Field]] = None, // default: whatever is in algorithm params or None
   currentDate: Option[String] = None, // if used will override dateRange filter, currentDate must lie between the item's
   // expireDateName value and availableDateName value, all are ISO 8601 dates
