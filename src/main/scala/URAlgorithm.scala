@@ -471,6 +471,17 @@ class URAlgorithm(val ap: URAlgorithmParams)
       }
     }
 
+    if (query.user.nonEmpty && !query.item.nonEmpty && query.user.get.split(";").length == 2) {
+      logger.info(s"returns popular products")
+      val userBid = query.user.get.split(";")(0)
+      val busId = Field("businessId", Seq(userBid), -1)
+      if (query.fields.nonEmpty) {
+        query.fields = Option(query.fields.get :+ busId)
+      } else {
+        query.fields = Option(List(busId))
+      }
+    }
+
     val (queryStr, blacklist) = buildQuery(ap, query, rankingFieldNames)
     val searchHitsOpt = EsClient.search(queryStr, esIndex)
 
