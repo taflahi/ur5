@@ -442,8 +442,9 @@ class URAlgorithm(val ap: URAlgorithmParams)
 
     queryEventNames = query.eventNames.getOrElse(modelEventNames) // eventNames in query take precedence
 
+    // RECOMMENDED PRODUCTS
     if (query.user.nonEmpty && query.item.nonEmpty) {
-
+      logger.info(s"returns recommended products")
       if (query.user.get.split(";").length == 2
         && query.item.get.split(";").length == 2) {
         val userBid = query.user.get.split(";")(0)
@@ -469,16 +470,40 @@ class URAlgorithm(val ap: URAlgorithmParams)
         logger.info(s"no business id on user or item")
         return predictedResult
       }
-    }
-
-    if (query.user.nonEmpty && !query.item.nonEmpty && query.user.get.split(";").length == 2) {
-      logger.info(s"returns popular products")
+    } // SIMILAR PRODUCTS
+    else if (query.item.nonEmpty && !query.user.nonEmpty && query.item.get.split(";").length == 2) {
+      logger.info(s"returns similar products")
+      val itemBid = query.item.get.split(";")(0)
+      val busId = Field("businessId", Seq(itemBid), -1)
+      if (query.fields.nonEmpty) {
+        query.fields = Option(query.fields.get :+ busId)
+      } else {
+        query.fields = Option(List(busId))
+      }
+    } // PERSONALIZED PRODUCTS
+    else if (query.user.nonEmpty && !query.item.nonEmpty && query.user.get.split(";").length == 2) {
+      logger.info(s"returns personalized products")
       val userBid = query.user.get.split(";")(0)
       val busId = Field("businessId", Seq(userBid), -1)
       if (query.fields.nonEmpty) {
         query.fields = Option(query.fields.get :+ busId)
       } else {
         query.fields = Option(List(busId))
+      }
+    } // POPULAR PRODUCTS
+    else if (!query.item.nonEmpty && !query.user.nonEmpty) {
+      if (query.businessId.nonEmpty) {
+        logger.info(s"returns popular products")
+        val busId = Field("businessId", Seq(query.businessId.get), -1)
+        if (query.fields.nonEmpty) {
+          query.fields = Option(query.fields.get :+ busId)
+        } else {
+          query.fields = Option(List(busId))
+        }
+      } else {
+        val predictedResult = PredictedResult(Array.empty[ItemScore])
+        logger.info(s"empty query is prohibited")
+        return predictedResult
       }
     }
 

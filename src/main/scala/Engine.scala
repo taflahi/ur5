@@ -35,6 +35,7 @@ case class Query(
   item: Option[String] = None, // must be a user or item id
   itemBias: Option[Float] = None, // default: whatever is in algorithm params or 1
   var fields: Option[List[Field]] = None, // default: whatever is in algorithm params or None
+  businessId: Option[String] = None,
   currentDate: Option[String] = None, // if used will override dateRange filter, currentDate must lie between the item's
   // expireDateName value and availableDateName value, all are ISO 8601 dates
   dateRange: Option[DateRange] = None, // optional before and after filter applied to a date field
