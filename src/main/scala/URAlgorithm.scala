@@ -442,70 +442,97 @@ class URAlgorithm(val ap: URAlgorithmParams)
 
     queryEventNames = query.eventNames.getOrElse(modelEventNames) // eventNames in query take precedence
 
-    // RECOMMENDED PRODUCTS
-    if (query.user.nonEmpty && query.item.nonEmpty) {
-      logger.info(s"returns recommended products")
-      if (query.user.get.split(";").length == 2
-        && query.item.get.split(";").length == 2) {
-        val userBid = query.user.get.split(";")(0)
-        val itemBid = query.item.get.split(";")(0)
-
-        if (userBid != itemBid) {
-          val predictedResult = PredictedResult(Array.empty[ItemScore])
-          logger.info(s"businessIds are different ${userBid} , ${itemBid}")
-          return predictedResult
-        }
-
-        logger.info(s"businessIds are same")
-
-        val busId = Field("businessId", Seq(userBid), -1)
-        if (query.fields.nonEmpty) {
-          query.fields = Option(query.fields.get :+ busId)
-        } else {
-          query.fields = Option(List(busId))
-        }
-      } else if (query.user.get.split(";").length == 2
-        || query.item.get.split(";").length == 2) {
-        val predictedResult = PredictedResult(Array.empty[ItemScore])
-        logger.info(s"no business id on user or item")
-        return predictedResult
-      }
-    } // SIMILAR PRODUCTS
-    else if (query.item.nonEmpty && !query.user.nonEmpty && query.item.get.split(";").length == 2) {
-      logger.info(s"returns similar products")
-      val itemBid = query.item.get.split(";")(0)
-      val busId = Field("businessId", Seq(itemBid), -1)
+    if (!query.businessId.nonEmpty) {
+      val predictedResult = PredictedResult(Array.empty[ItemScore])
+      logger.info(s"businessId is empty")
+      return predictedResult
+    } else {
+      val busId = Field("businessId", Seq(query.businessId.get), -1)
       if (query.fields.nonEmpty) {
         query.fields = Option(query.fields.get :+ busId)
       } else {
         query.fields = Option(List(busId))
-      }
-    } // PERSONALIZED PRODUCTS
-    else if (query.user.nonEmpty && !query.item.nonEmpty && query.user.get.split(";").length == 2) {
-      logger.info(s"returns personalized products")
-      val userBid = query.user.get.split(";")(0)
-      val busId = Field("businessId", Seq(userBid), -1)
-      if (query.fields.nonEmpty) {
-        query.fields = Option(query.fields.get :+ busId)
-      } else {
-        query.fields = Option(List(busId))
-      }
-    } // POPULAR PRODUCTS
-    else if (!query.item.nonEmpty && !query.user.nonEmpty) {
-      if (query.businessId.nonEmpty) {
-        logger.info(s"returns popular products")
-        val busId = Field("businessId", Seq(query.businessId.get), -1)
-        if (query.fields.nonEmpty) {
-          query.fields = Option(query.fields.get :+ busId)
-        } else {
-          query.fields = Option(List(busId))
-        }
-      } else {
-        val predictedResult = PredictedResult(Array.empty[ItemScore])
-        logger.info(s"empty query is prohibited")
-        return predictedResult
       }
     }
+
+    // USER NON EMPTY
+    if (query.user.nonEmpty) {
+      val user = query.businessId.get.concat(";").concat(query.user.get)
+      query.user = Option(user)
+      logger.info(s"user non empty ${user}")
+    }
+
+    // ITEM NON EMPTY
+    if (query.item.nonEmpty) {
+      val item = query.businessId.get.concat(";").concat(query.item.get)
+      query.item = Option(item)
+      logger.info(s"item non empty ${item}")
+    }
+
+    // RECOMMENDED PRODUCTS
+    // if (query.user.nonEmpty && query.item.nonEmpty) {
+    //   logger.info(s"returns recommended products")
+    //   if (query.user.get.split(";").length == 2
+    //     && query.item.get.split(";").length == 2) {
+    //     val userBid = query.user.get.split(";")(0)
+    //     val itemBid = query.item.get.split(";")(0)
+
+    //     if (userBid != itemBid) {
+    //       val predictedResult = PredictedResult(Array.empty[ItemScore])
+    //       logger.info(s"businessIds are different ${userBid} , ${itemBid}")
+    //       return predictedResult
+    //     }
+
+    //     logger.info(s"businessIds are same")
+
+    //     val busId = Field("businessId", Seq(userBid), -1)
+    //     if (query.fields.nonEmpty) {
+    //       query.fields = Option(query.fields.get :+ busId)
+    //     } else {
+    //       query.fields = Option(List(busId))
+    //     }
+    //   } else if (query.user.get.split(";").length == 2
+    //     || query.item.get.split(";").length == 2) {
+    //     val predictedResult = PredictedResult(Array.empty[ItemScore])
+    //     logger.info(s"no business id on user or item")
+    //     return predictedResult
+    //   }
+    // } // SIMILAR PRODUCTS
+    // else if (query.item.nonEmpty && !query.user.nonEmpty && query.item.get.split(";").length == 2) {
+    //   logger.info(s"returns similar products")
+    //   val itemBid = query.item.get.split(";")(0)
+    //   val busId = Field("businessId", Seq(itemBid), -1)
+    //   if (query.fields.nonEmpty) {
+    //     query.fields = Option(query.fields.get :+ busId)
+    //   } else {
+    //     query.fields = Option(List(busId))
+    //   }
+    // } // PERSONALIZED PRODUCTS
+    // else if (query.user.nonEmpty && !query.item.nonEmpty && query.user.get.split(";").length == 2) {
+    //   logger.info(s"returns personalized products")
+    //   val userBid = query.user.get.split(";")(0)
+    //   val busId = Field("businessId", Seq(userBid), -1)
+    //   if (query.fields.nonEmpty) {
+    //     query.fields = Option(query.fields.get :+ busId)
+    //   } else {
+    //     query.fields = Option(List(busId))
+    //   }
+    // } // POPULAR PRODUCTS
+    // else if (!query.item.nonEmpty && !query.user.nonEmpty) {
+    //   if (query.businessId.nonEmpty) {
+    //     logger.info(s"returns popular products")
+    //     val busId = Field("businessId", Seq(query.businessId.get), -1)
+    //     if (query.fields.nonEmpty) {
+    //       query.fields = Option(query.fields.get :+ busId)
+    //     } else {
+    //       query.fields = Option(List(busId))
+    //     }
+    //   } else {
+    //     val predictedResult = PredictedResult(Array.empty[ItemScore])
+    //     logger.info(s"empty query is prohibited")
+    //     return predictedResult
+    //   }
+    // }
 
     val (queryStr, blacklist) = buildQuery(ap, query, rankingFieldNames)
     val searchHitsOpt = EsClient.search(queryStr, esIndex)
@@ -514,6 +541,7 @@ class URAlgorithm(val ap: URAlgorithmParams)
     val predictedResult = searchHitsOpt match {
       case Some(searchHits) =>
         val recs = searchHits.getHits.map { hit =>
+          val itemId = if (hit.getId.split(";").length >= 2) hit.getId.split(";")(1) else hit.getId.split(";")(0)
           if (withRanks) {
             val source = hit.getSource
             val ranks: Map[String, Double] = rankingsParams map { backfillParams =>
@@ -522,7 +550,9 @@ class URAlgorithm(val ap: URAlgorithmParams)
               backfillFieldName -> source.get(backfillFieldName).asInstanceOf[Double]
             } toMap
 
-            ItemScore(hit.getId, hit.getScore.toDouble,
+            ItemScore(
+              itemId,
+              hit.getScore.toDouble,
               ranks = if (ranks.nonEmpty) Some(ranks) else None,
               if (hit.getSource.containsKey("Price")) {
                 val source_name = hit.getSource.get("Price").asInstanceOf[java.util.ArrayList[String]]
@@ -561,7 +591,9 @@ class URAlgorithm(val ap: URAlgorithmParams)
                 } else Some("undefined")
               } else Some("undefined"))
           } else {
-            ItemScore(hit.getId, hit.getScore.toDouble, None,
+            ItemScore(
+              itemId,
+              hit.getScore.toDouble, None,
               if (hit.getSource.containsKey("Price")) {
                 val source_name = hit.getSource.get("Price").asInstanceOf[java.util.ArrayList[String]]
                 if (!source_name.isEmpty) {
